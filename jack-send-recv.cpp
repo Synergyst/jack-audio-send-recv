@@ -5,8 +5,10 @@
 #include <boost/asio.hpp>
 #include <chrono>
 
+const int SAMPLE_RATE = 48000;
 const int PORT = 19976;
-constexpr int MAX_AUDIO_BUFFER_SIZE = 4096;
+constexpr int MAX_AUDIO_BUFFER_SIZE = 1024 * sizeof(float); // 4096
+//constexpr int MAX_AUDIO_BUFFER_SIZE = 15600;
 std::mutex audioMutex;
 jack_client_t *client_in, *client_out;
 jack_port_t *outputPort, *inputPort;
@@ -35,7 +37,6 @@ int AudioOutputCallback(jack_nframes_t nframes, void *arg) {
     size_t dataSize = nframes * sizeof(float);
     float out_buffer[MAX_AUDIO_BUFFER_SIZE];
     try {
-        //size_t bytesRead = socket->receive(boost::asio::buffer((float*)out, dataSize));
         size_t bytesRead = socket->receive(boost::asio::buffer(out_buffer, dataSize));
         if (bytesRead != MAX_AUDIO_BUFFER_SIZE)
             fprintf(stderr, "r:%d\n", bytesRead);
