@@ -4,15 +4,13 @@
 #include <jack/jack.h>
 #include <boost/asio.hpp>
 #include <chrono>
-
 const int SAMPLE_RATE = 48000;
 const char* SERVER_ADDRESS = "192.168.168.175";
-const int PORT = 19976;
+const int PORT = 19977;
 constexpr int MAX_AUDIO_BUFFER_SIZE = 1024 * sizeof(float); // 4096
 std::mutex audioMutex;
 jack_client_t *client_in, *client_out;
 jack_port_t *outputPort, *inputPort;
-
 // JACK audio callback function to capture audio from the microphone and send it to the TCP client
 int AudioInputCallback(jack_nframes_t nframes, void *arg) {
     jack_default_audio_sample_t* in = (jack_default_audio_sample_t*)jack_port_get_buffer(inputPort, nframes);
@@ -25,7 +23,7 @@ int AudioInputCallback(jack_nframes_t nframes, void *arg) {
             fprintf(stderr, "s:%d\n", dataSize);
     } catch (const boost::system::system_error &e) {
         std::cerr << "Error while receiving from socket in client_in: " << e.what() << std::endl;
-        return -1;
+        exit(1);
     }
     return 0;
 }
@@ -43,7 +41,7 @@ int AudioOutputCallback(jack_nframes_t nframes, void *arg) {
         std::memcpy(out, out_buffer, bytesRead);
     } catch (const boost::system::system_error &e) {
         std::cerr << "Error while receiving from socket in client_out: " << e.what() << std::endl;
-        return -1;
+        exit(1);
     }
     return 0;
 }
