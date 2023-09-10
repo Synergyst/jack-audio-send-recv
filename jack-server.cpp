@@ -7,7 +7,7 @@ constexpr int EXPECTED_AUDIO_BUFFER_SIZE = 1024 * sizeof(float);
 template <typename T1, typename T2, typename T3>
 class AudioServer {
 public:
-    AudioServer(T1 port, T2 jackServerName, T3 socket) : port(port), jackServerName(jackServerName), socket(socket) {}
+    AudioServer(T1 port, T2 jackServerName, T3 socket) : port(port), jackServerName(jackServerName), socket(socket) { }
     void run() {
         if (InitializeJack() != 0) {
             std::cerr << "Failed to initialize JACK" << std::endl;
@@ -23,6 +23,11 @@ private:
     T3 socket;
     jack_client_t *client;
     jack_port_t *outputPort, *inputPort;
+    void deinitJack() {
+        // Cleanup and close JACK client
+        jack_deactivate(client);
+        jack_client_close(client);
+    }
     int InitializeJack() {
         jack_status_t status;
         client = jack_client_open(jackServerName.c_str(), JackNullOption, &status);
@@ -66,6 +71,8 @@ private:
                 return 0;
             } else {
                 fprintf(stderr, "Error while receiving from socket in client_in: %s\n", e.what());
+                audioServer->deinitJack();
+                //deinitJack(audioServer->client);
                 return 0;
             }
         }
@@ -80,15 +87,12 @@ private:
                 return 0;
             } else {
                 fprintf(stderr, "Error while receiving from socket in client_out: %s\n", e.what());
+                audioServer->deinitJack();
+                //deinitJack(audioServer->client);
                 return 0;
             }
         }
         return 0;
-    }
-    void deinitJack() {
-        // Cleanup and close JACK client
-        jack_deactivate(client);
-        jack_client_close(client);
     }
 };
 // Setup JACK audio backend and TCP server
