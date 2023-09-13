@@ -4,6 +4,7 @@
 #include <jack/jack.h>
 #include <boost/asio.hpp>
 #include <chrono>
+#include <string>
 const int SAMPLE_RATE = 48000;
 const char* SERVER_ADDRESS = "192.168.168.175";
 const int PORT = 19977;
@@ -13,7 +14,7 @@ jack_port_t *outputPort, *inputPort;
 int AudioCallback(jack_nframes_t nframes, void *arg) {
     jack_default_audio_sample_t* out = (jack_default_audio_sample_t*)jack_port_get_buffer(outputPort, nframes);
     jack_default_audio_sample_t* in = (jack_default_audio_sample_t*)jack_port_get_buffer(inputPort, nframes);
-    boost::asio::ip::tcp::socket *socket = static_cast<boost::asio::ip::tcp::socket*>(arg); // Cast the user data to a socket pointer
+    boost::asio::ip::tcp::socket *socket = static_cast<boost::asio::ip::tcp::socket*>(arg);
     size_t dataSize = nframes * sizeof(float);
     float out_buffer[MAX_AUDIO_BUFFER_SIZE];
     try {
@@ -37,7 +38,9 @@ int AudioCallback(jack_nframes_t nframes, void *arg) {
 }
 int TCPClientHandler(boost::asio::ip::tcp::socket socket) {
     jack_status_t status;
-    client = jack_client_open("AudioClient", JackNullOption, &status);
+    //std::string clientName = "CLI_" + socket.local_endpoint().address().to_string() + "_" + std::to_string(socket.local_endpoint().port());
+    std::string clientName = "CLI_" + std::to_string(socket.local_endpoint().port());
+    client = jack_client_open(clientName.c_str(), JackNullOption, &status);
     if (client == nullptr) {
         fprintf(stderr, "Failed to open JACK client\n");
         return -1;
@@ -76,7 +79,7 @@ int main(int argc, char *argv[]) {
     try {
         boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(SERVER_ADDRESS), PORT);
         socket.connect(endpoint);
-        fprintf(stderr, "Client connected to (%s:%d)\n", SERVER_ADDRESS, PORT);
+        fprintf(stderr, "Client (%s:%d) connected to server (%s:%d)\n", socket.local_endpoint().address().to_string().c_str(), socket.local_endpoint().port(), SERVER_ADDRESS, PORT);
     } catch (const boost::system::system_error &e) {
         fprintf(stderr, "Error while receiving from socket in client_out: %s\n", e.what());
         return -1;
