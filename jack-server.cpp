@@ -5,7 +5,7 @@
 #include <chrono>
 int curPort = 19977;
 const int startingPort = curPort;
-std::string curClient = "AudioServer";
+std::string curClient = "SRV";
 constexpr int EXPECTED_AUDIO_BUFFER_SIZE = 1024 * sizeof(float);
 template <typename T1, typename T2, typename T3>
 class AudioServer {
@@ -117,7 +117,7 @@ int TCPClientHandler(boost::asio::ip::tcp::socket socket) {
                 fprintf(stderr, "Error during data receive: %s\n", ec.message());
                 break;
             }
-            // Handle incoming data from the client here. You can use socket.read_some() or other async read operations. For simplicity, we just sleep for a short time in this example.
+            // Handle incoming data from the client here. You can use socket.read() or other async read operations. For simplicity, we just sleep for a short time in this example.
             std::this_thread::sleep_for(std::chrono::milliseconds(120000));
         }
     } catch (const std::exception& e) {
@@ -130,6 +130,7 @@ int main() {
     boost::asio::ip::tcp::acceptor acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), startingPort));
     boost::asio::ip::tcp::socket socket(ioService);
     while (true) {
+        //boost::asio::ip::tcp::socket socket(ioService);
         fprintf(stderr, "Awaiting for new client on: 0.0.0.0:%d\n", startingPort);
         acceptor.accept(socket);
         std::thread(TCPClientHandler, std::move(socket)).detach();
