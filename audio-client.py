@@ -15,7 +15,6 @@ if __name__ == '__main__':
     class GUIConfig:
         def __init__(self) -> None:
             self.samplerate: int = 40000
-            self.threshold: int = -60
     class GUI:
         def __init__(self) -> None:
             self.config = GUIConfig()
@@ -28,7 +27,7 @@ if __name__ == '__main__':
                     data = json.load(j)
             except:
                 with open("values_sender.json", "w") as j:
-                    data = {"sg_input_device": input_devices[sd.default.device[0]], "sg_output_device": output_devices[sd.default.device[1]], "threshold": "-60"}
+                    data = {"sg_input_device": input_devices[sd.default.device[0]], "sg_output_device": output_devices[sd.default.device[1]]}
             return data
         def launcher(self):
             data = self.load()
@@ -45,10 +44,6 @@ if __name__ == '__main__':
                             [
                                 sg.Text(i18n("output device       ")),
                                 sg.Combo(output_devices, key="sg_output_device", default_value=data.get("sg_output_device", "")),
-                            ],
-                            [
-                                sg.Text(i18n("mic threshold (dB)")),
-                                sg.Slider(range=(-100, 0), key="threshold", resolution=1, orientation="h", default_value=data.get("threshold", "")),
                             ],
                         ], title=i18n("Audio settings (use same device driver; MME works best)"),
                     )
@@ -71,7 +66,7 @@ if __name__ == '__main__':
                 if event == "start_vc" and self.flag_vc == False:
                     if self.set_values(values) == True:
                         self.start_vc()
-                        settings = {"sg_input_device": values["sg_input_device"], "sg_output_device": values["sg_output_device"], "threshold": values["threshold"]}
+                        settings = {"sg_input_device": values["sg_input_device"], "sg_output_device": values["sg_output_device"]}
                         with open("values_sender.json", "w") as j:
                             json.dump(settings, j)
                 if event == "stop_vc" and self.flag_vc == True:
